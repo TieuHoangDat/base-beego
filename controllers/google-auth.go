@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"base-beego-project/models"
 	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -67,6 +69,23 @@ func (c *GoogleAuthController) Callback() {
 	}
 
 	fmt.Printf("User Info: %v", userInfo)
+
+	// Tạo đối tượng User từ thông tin người dùng
+	o := orm.NewOrm()
+	user := models.User{
+		Username:  userInfo["name"].(string),
+		Email:     userInfo["email"].(string),
+		Role:      "user", // Thay đổi theo nhu cầu của bạn
+		OtpSecret: "",     // Cung cấp giá trị nếu cần
+	}
+
+	// Lưu đối tượng vào cơ sở dữ liệu
+	_, err = o.Insert(&user)
+	if err != nil {
+		c.Ctx.WriteString("Error while saving user: " + err.Error())
+		return
+	}
+
 	c.Ctx.WriteString("Logged in successfully!")
 }
 
